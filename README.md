@@ -30,7 +30,7 @@ Change `COM3` to your port (`/dev/ttyACM0` on Linux). If it doesn't enter downlo
 Letter to LED mapping, colors and timings are set in the Settings tab and kept after a reboot.
 
 
-<img src="apk_screenshoot.png" alt="Web interface" width="300">
+<img src="apk_screenshoot.jpg" alt="Web interface" width="300">
 
 ---
 
