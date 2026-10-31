@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stranger Things Lights</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0d0d0d;
+    color: #eee;
+    margin: 0;
+    padding: 1.5rem;
+  }
+  h1 { font-size: 1.05rem; font-weight: 500; color: #999; text-align: center; margin-bottom: 1.5rem; }
+
+  .tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .tab-btn {
+    background: #1c1c1c; color: #888; border: none; padding: 0.6rem 1.4rem;
+    border-radius: 8px; cursor: pointer; font-size: 0.95rem;
+  }
+  .tab-btn.active { background: #ff6b1a; color: #111; font-weight: 600; }
+
+  .tab-content { display: none; max-width: 720px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+
+  .alphabet { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; margin-bottom: 1.5rem; }
+  .letter-btn {
+    background: #1c1c1c; color: #eee; border: 1px solid #333; border-radius: 8px;
+    padding: 0.8rem 0; font-size: 1rem; cursor: pointer;
+  }
+  .letter-btn:active { background: #ff6b1a; color: #111; }
+
+  .text-row { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+  input[type=text] {
+    flex: 1; background: #1c1c1c; border: 1px solid #333; color: #eee;
+    padding: 0.6rem; border-radius: 8px; font-size: 1rem;
+  }
+  button.action {
+    background: #ff6b1a; color: #111; border: none; border-radius: 8px;
+    padding: 0.6rem 1.2rem; font-weight: 600; cursor: pointer;
+  }
+  button.action.secondary { background: #333; color: #eee; }
+  button.action.secondary.full { width: 100%; margin-bottom: 0.6rem; }
+
+  #status { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { padding: 0.4rem; text-align: center; border-bottom: 1px solid #222; }
+  input[type=number] {
+    width: 55px; background: #1c1c1c; border: 1px solid #333; color: #eee;
+    padding: 0.3rem; border-radius: 4px;
+  }
+  input[type=color] { width: 40px; height: 32px; border: none; border-radius: 4px; background: none; }
+  .save-row {
+    background: #333; color: #eee; border: none; border-radius: 4px;
+    padding: 0.3rem 0.6rem; cursor: pointer;
+  }
+  .global-config { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; }
+
+  footer { text-align: center; font-size: 0.8rem; color: #666; margin-top: 2.5rem; }
+  footer a { color: #ff6b1a; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <h1>Stranger Things Lights</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="control">Control</button>
+    <button class="tab-btn" data-tab="config">Settings</button>
+  </div>
+
+  <!-- CONTROL -->
+  <div class="tab-content active" id="tab-control">
+    <div class="alphabet" id="alphabet"></div>
+
+    <div class="text-row">
+      <input type="text" id="text-input" placeholder="Type a message..." maxlength="127">
+      <button class="action" id="send-btn">Send</button>
+    </div>
+
+    <div class="text-row">
+      <button class="action secondary" id="all-btn" style="flex:1;">Turn all on</button>
+      <button class="action secondary" id="kr-btn" style="flex:1;">Knight Rider</button>
+    </div>
+
+    <button class="action secondary full" id="stop-btn">Turn off / Stop</button>
+    <div id="status">Ready</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-content" id="tab-config">
+    <h3 style="color:#999; font-weight:500; font-size:0.9rem; margin: 0 0 0.6rem;">
+      Message timing
+    </h3>
+    <div class="global-config" style="flex-wrap: wrap; row-gap:0.6rem;">
+      <label for="delay-input">Letter on (ms)</label>
+      <input type="number" id="delay-input" min="0" step="50" style="width:80px;">
+      <label for="gap-input">Off gap (ms)</label>
+      <input type="number" id="gap-input" min="0" step="50" style="width:80px;">
+      <button class="save-row" id="save-timing-btn">Save</button>
+    </div>
+
+    <h3 style="color:#999; font-weight:500; font-size:0.9rem; margin: 1.2rem 0 0.6rem;">
+      Random sequence (before the message)
+    </h3>
+    <div class="global-config" style="flex-wrap: wrap; row-gap:0.6rem;">
+      <label for="random-enabled">Enable</label>
+      <input type="checkbox" id="random-enabled" style="width:20px; height:20px;">
+      <label for="random-duration">Duration (ms)</label>
+      <input type="number" id="random-duration" min="0" step="500" style="width:90px;">
+      <label for="random-interval">Interval (ms)</label>
+      <input type="number" id="random-interval" min="50" step="50" style="width:90px;">
+      <label for="random-transition">Pause before message (ms)</label>
+      <input type="number" id="random-transition" min="0" step="50" style="width:90px;">
+      <button class="save-row" id="save-random-btn">Save</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Letter</th><th>Start LED</th><th>End LED</th><th>Color</th><th></th></tr>
+      </thead>
+      <tbody id="config-table-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Designed by <a href="https://www.myembeddedstuff.com" target="_blank" rel="noopener">My Embedded Stuff</a>
+  </footer>
+
+<script>
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+let statusPoll = null;
+let allOn = false;
+let knightRiderOn = false;
+
+// ---- Tabs ----
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+function setStatus(msg) {
+  document.getElementById("status").textContent = msg;
+}
+
+// Any other control action (single letter, send text, stop) invalidates the
+// "turn all on" and "Knight Rider" toggles, since the backend also cuts
+// those sequences when something else starts.
+function resetToggleButtons() {
+  allOn = false;
+  knightRiderOn = false;
+  document.getElementById("all-btn").textContent = "Turn all on";
+  document.getElementById("kr-btn").textContent = "Knight Rider";
+}
+
+// ---- Control: alphabet ----
+const alphabetDiv = document.getElementById("alphabet");
+ALPHABET.forEach(letter => {
+  const btn = document.createElement("button");
+  btn.className = "letter-btn";
+  btn.textContent = letter;
+  btn.addEventListener("click", () => sendLetter(letter));
+  alphabetDiv.appendChild(btn);
+});
+
+async function sendLetter(letter) {
+  stopStatusPolling();
+  resetToggleButtons();
+  setStatus(`Lighting ${letter}...`);
+  try {
+    const res = await fetch("/api/control/letter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ letter })
+    });
+    setStatus(res.ok ? `Letter ${letter} on` : "Error lighting the letter");
+  } catch (e) {
+    setStatus("Connection error with the ESP32");
+  }
+}
+
+document.getElementById("send-btn").addEventListener("click", async () => {
+  const text = document.getElementById("text-input").value;
+  if (!text.trim()) return;
+  resetToggleButtons();
+  try {
+    const res = await fetch("/api/control/text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text.toUpperCase() })
+    });
+    if (res.ok) {
+      setStatus("Playing...");
+      startStatusPolling();
+    } else {
+      setStatus("Error sending the text");
+    }
+  } catch (e) {
+    setStatus("Connection error with the ESP32");
+  }
+});
+
+document.getElementById("stop-btn").addEventListener("click", async () => {
+  stopStatusPolling();
+  resetToggleButtons();
+  try {
+    await fetch("/api/control/stop", { method: "POST" });
+    setStatus("Stopped");
+  } catch (e) {
+    setStatus("Connection error with the ESP32");
+  }
+});
+
+document.getElementById("all-btn").addEventListener("click", async () => {
+  stopStatusPolling();
+  allOn = !allOn;
+  knightRiderOn = false;
+  document.getElementById("kr-btn").textContent = "Knight Rider";
+  try {
+    await fetch("/api/control/all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ on: allOn })
+    });
+    document.getElementById("all-btn").textContent = allOn ? "Turn all off" : "Turn all on";
+    setStatus(allOn ? "All LEDs on" : "Off");
+  } catch (e) {
+    setStatus("Connection error with the ESP32");
+  }
+});
+
+document.getElementById("kr-btn").addEventListener("click", async () => {
+  stopStatusPolling();
+  knightRiderOn = !knightRiderOn;
+  allOn = false;
+  document.getElementById("all-btn").textContent = "Turn all on";
+  try {
+    await fetch("/api/control/knight_rider", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ on: knightRiderOn })
+    });
+    document.getElementById("kr-btn").textContent = knightRiderOn ? "Stop Knight Rider" : "Knight Rider";
+    setStatus(knightRiderOn ? "Knight Rider running" : "Off");
+  } catch (e) {
+    setStatus("Connection error with the ESP32");
+  }
+});
+
+function startStatusPolling() {
+  stopStatusPolling();
+  statusPoll = setInterval(async () => {
+    try {
+      const res = await fetch("/api/control/status");
+      const data = await res.json();
+      if (data.mode === "text") {
+        setStatus(`Playing "${data.text}" (${data.index + 1}/${data.text.length})`);
+      } else if (data.mode === "random") {
+        setStatus("Random sequence (before the message)...");
+      } else if (data.mode === "transition") {
+        setStatus("Pause before the message...");
+      } else {
+        setStatus("Ready");
+        stopStatusPolling();
+      }
+    } catch (e) {
+      stopStatusPolling();
+    }
+  }, 400);
+}
+
+function stopStatusPolling() {
+  if (statusPoll) {
+    clearInterval(statusPoll);
+    statusPoll = null;
+  }
+}
+
+// ---- Settings ----
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+function hexToRgb(hex) {
+  const v = parseInt(hex.slice(1), 16);
+  return { r: (v >> 16) & 255, g: (v >> 8) & 255, b: v & 255 };
+}
+
+async function loadConfig() {
+  try {
+    const res = await fetch("/api/config");
+    const data = await res.json();
+
+    document.getElementById("delay-input").value = data.delay_ms;
+    document.getElementById("gap-input").value = data.gap_ms;
+    document.getElementById("random-enabled").checked = data.random_enabled;
+    document.getElementById("random-duration").value = data.random_duration_ms;
+    document.getElementById("random-interval").value = data.random_interval_ms;
+    document.getElementById("random-transition").value = data.random_transition_ms;
+
+    const tbody = document.getElementById("config-table-body");
+    tbody.innerHTML = "";
+
+    data.letters.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.letter}</td>
+        <td><input type="number" min="0" value="${item.start}" class="cfg-start"></td>
+        <td><input type="number" min="0" value="${item.end}" class="cfg-end"></td>
+        <td><input type="color" value="${rgbToHex(item.r, item.g, item.b)}" class="cfg-color"></td>
+        <td><button class="save-row">Save</button></td>
+      `;
+      tr.querySelector(".save-row").addEventListener("click", () => saveLetterConfig(item.letter, tr));
+      tbody.appendChild(tr);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function saveLetterConfig(letter, row) {
+  const start = parseInt(row.querySelector(".cfg-start").value, 10);
+  const end = parseInt(row.querySelector(".cfg-end").value, 10);
+  const { r, g, b } = hexToRgb(row.querySelector(".cfg-color").value);
+
+  try {
+    const res = await fetch("/api/config/letter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ letter, start, end, r, g, b })
+    });
+    row.style.background = res.ok ? "#1a3d1a" : "#3d1a1a";
+    setTimeout(() => { row.style.background = ""; }, 600);
+  } catch (e) {
+    row.style.background = "#3d1a1a";
+  }
+}
+
+document.getElementById("save-timing-btn").addEventListener("click", async () => {
+  const delay_ms = parseInt(document.getElementById("delay-input").value, 10);
+  const gap_ms = parseInt(document.getElementById("gap-input").value, 10);
+  try {
+    await fetch("/api/config/timing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ delay_ms, gap_ms })
+    });
+    setStatus("Timing saved");
+  } catch (e) {}
+});
+
+document.getElementById("save-random-btn").addEventListener("click", async () => {
+  const enabled = document.getElementById("random-enabled").checked;
+  const duration_ms = parseInt(document.getElementById("random-duration").value, 10);
+  const interval_ms = parseInt(document.getElementById("random-interval").value, 10);
+  const transition_ms = parseInt(document.getElementById("random-transition").value, 10);
+  try {
+    await fetch("/api/config/random", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ duration_ms, interval_ms, enabled, transition_ms })
+    });
+    setStatus("Random sequence saved");
+  } catch (e) {}
+});
+
+loadConfig();
+</script>
+</body>
+</html>
